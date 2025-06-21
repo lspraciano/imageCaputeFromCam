@@ -1,15 +1,9 @@
-[tool.poetry]
+[project]
 name = "imagecaputefromcam"
 version = "0.1.0"
-description = ""
-authors = ["Lucas Praciano <luskcct@gmail.com>"]
+description = "Add your description here"
 readme = "README.md"
-
-[tool.poetry.dependencies]
-python = "^3.11"
-opencv-python = "^4.9.0.80"
-
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires-python = ">=3.13"
+dependencies = [
+    "opencv-python>=4.11.0.86",
+]

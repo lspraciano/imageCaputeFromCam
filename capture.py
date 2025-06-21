@@ -28,7 +28,7 @@ while True:
 
     frame: np.ndarray = cv2.resize(
         src=frame,
-        dsize=(1024, 1024)
+        dsize=(800, 800)
     )
 
     cv2.imshow(
