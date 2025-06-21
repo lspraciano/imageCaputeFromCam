@@ -4,8 +4,9 @@ from datetime import datetime
 import cv2
 import numpy as np
 
-OUTPUT_PATH = "./images"
-cap = cv2.VideoCapture(0)
+OUTPUT_PATH: str = "./images"
+SAMPLE_NAME: str = "sample_002"
+cap: cv2.VideoCapture = cv2.VideoCapture(0)
 
 
 def save_image(
@@ -13,7 +14,7 @@ def save_image(
         output_path: str
 ):
     timestamp: str = datetime.now().strftime("%Y%m%d_%H%M%S")
-    file_name: str = f"{timestamp}.jpg"
+    file_name: str = f"{SAMPLE_NAME}_{timestamp}.jpg"
     file_path: str = os.path.join(output_path, file_name)
     cv2.imwrite(filename=file_path, img=image)
     print(f"Imagem salva como {file_name}")
