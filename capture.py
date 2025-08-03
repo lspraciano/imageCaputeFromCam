@@ -4,67 +4,74 @@ from datetime import datetime
 import cv2
 import numpy as np
 
-OUTPUT_PATH: str = "./images"
-SAMPLE_NAME: str = "sample_002"
+ZOOM: str = "objetiva_marcada_10x"
+OUTPUT_PATH: str = f"./images/{ZOOM}"
+SAMPLE_NAME: str = "sample_072"
 
 
-def create_sample_dir(
-        output_path: str,
-        sample_name: str
-) -> str:
+def create_sample_dir(output_path: str, sample_name: str) -> str:
     sample_dir: str = os.path.join(output_path, sample_name)
     os.makedirs(name=sample_dir, exist_ok=True)
     return sample_dir
 
 
-def save_image(
-        image: np.ndarray,
-        sample_dir: str,
-        sample_name: str
-):
-    existing_images = []
-    for f in os.listdir(sample_dir):
-        if f.startswith(sample_name) and f.endswith(".jpg"):
-            existing_images.append(f)
-
+def save_image(image: np.ndarray, sample_dir: str, sample_name: str):
+    existing_images = [
+        f for f in os.listdir(sample_dir)
+        if f.startswith(sample_name) and f.endswith(".jpg")
+    ]
     sequence_number = len(existing_images) + 1
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    file_name = f"{sample_name}_{timestamp}_{sequence_number}.jpg"
+    file_path = os.path.join(sample_dir, file_name)
 
-    timestamp: str = datetime.now().strftime("%Y%m%d_%H%M%S")
-    file_name: str = f"{sample_name}_{timestamp}_{sequence_number}.jpg"
-    file_path: str = os.path.join(sample_dir, file_name)
+    print(f"Tentando salvar em: {file_path}")
+    print(f"Imagem shape: {image.shape}, dtype: {image.dtype}")
 
-    cv2.imwrite(filename=file_path, img=image)
-    print(f"Imagem salva como {file_path}")
+    success = cv2.imwrite(file_path, image)
+    if success:
+        print(f"✅ Imagem salva como {file_path}")
+    else:
+        print("❌ Falha ao salvar a imagem com cv2.imwrite()")
 
 
-def capture_loop(
-        output_path: str,
-        sample_name: str
-):
-    cap: cv2.VideoCapture = cv2.VideoCapture(0)
+def capture_loop(output_path: str, sample_name: str):
+    cap: cv2.VideoCapture = cv2.VideoCapture(0, cv2.CAP_DSHOW)
 
-    sample_dir: str = create_sample_dir(
-        output_path=output_path,
-        sample_name=sample_name
-    )
+    # Defina a resolução desejada (4K)
+    cap.set(cv2.CAP_PROP_FRAME_WIDTH, 3840)
+    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 2160)
+
+    # Verifique se a câmera abriu corretamente
+    if not cap.isOpened():
+        print("❌ Erro: câmera não conectada ou inacessível.")
+        return
+
+    # Mostrar resolução real
+    actual_width = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
+    actual_height = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
+    print(f"📷 Resolução atual da câmera: {int(actual_width)}x{int(actual_height)}")
+
+    sample_dir: str = create_sample_dir(output_path, sample_name)
 
     while True:
-        status: bool
-        frame: np.ndarray
         status, frame = cap.read()
-        key: int = cv2.waitKey(delay=1)
+        key = cv2.waitKey(1)
 
-        if not status:
-            print("Erro ao capturar imagem da câmera.")
+        if not status or frame is None:
+            print("❌ Erro ao capturar imagem da câmera.")
             break
 
-        frame: cv2.typing.MatLike = cv2.resize(src=frame, dsize=(800, 800))
+        # Armazena o frame original para salvar
+        original_frame = frame.copy()
 
-        cv2.imshow(winname="Camera", mat=frame)
+        # Redimensiona apenas para visualização
+        display_frame = cv2.resize(original_frame, (1024, 640))
+        cv2.imshow("Camera", display_frame)
 
         if key == ord("c"):
-            save_image(image=frame, sample_dir=sample_dir, sample_name=sample_name)
-        elif key == 27:
+            save_image(original_frame, sample_dir, sample_name)
+        elif key == 27:  # Esc para sair
             break
 
     cap.release()
